@@ -13,7 +13,7 @@ import {
   CornerDownLeft,
   Phone,
   User,
-  MoreHorizontal,
+  MessageSquare,
   X
 } from 'lucide-react';
 
@@ -47,7 +47,8 @@ export const AttendeeTable: React.FC<AttendeeTableProps> = ({
     jobTitle: '',
     name: '',
     contactName: '',
-    phone: ''
+    phone: '',
+    remarks: ''
   });
   const deptInputRef = useRef<HTMLInputElement>(null);
   const mobileDeptInputRef = useRef<HTMLInputElement>(null);
@@ -69,6 +70,7 @@ export const AttendeeTable: React.FC<AttendeeTableProps> = ({
         a.name.toLowerCase().includes(filterText.toLowerCase()) || 
         a.department.toLowerCase().includes(filterText.toLowerCase()) ||
         a.contactName?.toLowerCase().includes(filterText.toLowerCase()) ||
+        a.remarks?.toLowerCase().includes(filterText.toLowerCase()) ||
         a.phone.includes(filterText);
 
       if (!matchesText) return false;
@@ -137,7 +139,7 @@ export const AttendeeTable: React.FC<AttendeeTableProps> = ({
     }
   };
 
-  // Logic: Autofill contact/phone based on department
+  // Logic: Autofill contact/phone based on department (Remarks REMOVED)
   const autofillFromDepartment = (dept: string, isQuickAdd: boolean, rowId?: string) => {
     if (!dept) return;
 
@@ -151,12 +153,14 @@ export const AttendeeTable: React.FC<AttendeeTableProps> = ({
             department: dept,
             contactName: match.contactName,
             phone: match.phone
+            // REMARKS NOT COPIED
         }));
       } else if (rowId) {
         onUpdateAttendee(rowId, { 
             department: dept,
             contactName: match.contactName,
             phone: match.phone
+            // REMARKS NOT COPIED
         });
       }
     } else {
@@ -185,6 +189,7 @@ export const AttendeeTable: React.FC<AttendeeTableProps> = ({
         jobTitle: newItem.jobTitle, 
         contactName: newItem.contactName,
         phone: newItem.phone,
+        remarks: newItem.remarks,
         name: '' 
     };
 
@@ -267,6 +272,15 @@ export const AttendeeTable: React.FC<AttendeeTableProps> = ({
                             />
                          </div>
                      </div>
+                      <div>
+                        <label className="text-xs font-semibold text-slate-500 mb-1 block">部门备注</label>
+                        <input 
+                            className="w-full border border-slate-300 rounded-lg p-3 text-sm focus:ring-2 focus:ring-blue-500 outline-none"
+                            placeholder="备注..."
+                            value={newItem.remarks}
+                            onChange={e => setNewItem({...newItem, remarks: e.target.value})}
+                        />
+                     </div>
                 </div>
                 <div className="p-4 border-t border-slate-100 bg-slate-50 rounded-b-xl">
                     <button 
@@ -281,21 +295,21 @@ export const AttendeeTable: React.FC<AttendeeTableProps> = ({
       )}
 
       {/* Toolbar */}
-      <div className="p-3 md:p-4 border-b border-slate-200 flex flex-wrap items-center justify-between gap-3 bg-white md:bg-slate-50/50 rounded-t-lg">
+      <div className="p-2 md:p-3 border-b border-slate-200 flex flex-wrap items-center justify-between gap-2 bg-white md:bg-slate-50/50 rounded-t-lg">
         <div className="flex items-center gap-2 flex-1 min-w-[200px]">
           <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400" />
             <input 
               type="text" 
               placeholder="搜索..." 
-              className="w-full pl-9 pr-3 py-2 border border-slate-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+              className="w-full pl-8 pr-3 py-1.5 border border-slate-300 rounded-md text-xs focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
               value={filterText}
               onChange={(e) => setFilterText(e.target.value)}
             />
           </div>
           <div className="relative">
              <select 
-              className="appearance-none pl-9 pr-8 py-2 border border-slate-300 rounded-md text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer w-[40px] md:w-auto"
+              className="appearance-none pl-8 pr-6 py-1.5 border border-slate-300 rounded-md text-xs bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer w-[40px] md:w-auto"
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value as FilterStatus)}
              >
@@ -306,17 +320,17 @@ export const AttendeeTable: React.FC<AttendeeTableProps> = ({
                <option value={FilterStatus.NOTIFIED}>已通知</option>
                <option value={FilterStatus.RSVP_YES}>已回执</option>
              </select>
-             <Filter className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+             <Filter className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400" />
           </div>
         </div>
 
         {selectedIds.size > 0 && (
           <div className="flex items-center gap-2 animate-in fade-in slide-in-from-top-1 duration-200 overflow-x-auto pb-1 md:pb-0">
-             <span className="hidden md:inline text-sm font-medium text-slate-600 mr-2">已选 {selectedIds.size}</span>
-             <button onClick={() => handleBatchUpdate('isNotified', true)} className="flex-shrink-0 flex items-center gap-1 px-3 py-1.5 bg-blue-100 text-blue-700 rounded hover:bg-blue-200 text-xs font-medium"><Mail className="w-3.5 h-3.5"/> <span className="hidden md:inline">批量</span>通知</button>
-             <button onClick={() => handleBatchUpdate('hasRsvp', true)} className="flex-shrink-0 flex items-center gap-1 px-3 py-1.5 bg-indigo-100 text-indigo-700 rounded hover:bg-indigo-200 text-xs font-medium"><FileCheck className="w-3.5 h-3.5"/> <span className="hidden md:inline">批量</span>回执</button>
-             <button onClick={() => handleBatchUpdate('status', 'present')} className="flex-shrink-0 flex items-center gap-1 px-3 py-1.5 bg-emerald-100 text-emerald-700 rounded hover:bg-emerald-200 text-xs font-medium"><CheckCircle className="w-3.5 h-3.5"/> <span className="hidden md:inline">批量</span>出席</button>
-             <button onClick={handleBatchDelete} className="flex-shrink-0 flex items-center gap-1 px-3 py-1.5 bg-red-100 text-red-700 rounded hover:bg-red-200 text-xs font-medium"><Trash className="w-3.5 h-3.5"/> <span className="hidden md:inline">批量</span>删除</button>
+             <span className="hidden md:inline text-xs font-medium text-slate-600 mr-2">已选 {selectedIds.size}</span>
+             <button onClick={() => handleBatchUpdate('isNotified', true)} className="flex-shrink-0 flex items-center gap-1 px-2 py-1 bg-blue-100 text-blue-700 rounded hover:bg-blue-200 text-xs font-medium"><Mail className="w-3 h-3"/> <span className="hidden md:inline">通知</span></button>
+             <button onClick={() => handleBatchUpdate('hasRsvp', true)} className="flex-shrink-0 flex items-center gap-1 px-2 py-1 bg-indigo-100 text-indigo-700 rounded hover:bg-indigo-200 text-xs font-medium"><FileCheck className="w-3 h-3"/> <span className="hidden md:inline">回执</span></button>
+             <button onClick={() => handleBatchUpdate('status', 'present')} className="flex-shrink-0 flex items-center gap-1 px-2 py-1 bg-emerald-100 text-emerald-700 rounded hover:bg-emerald-200 text-xs font-medium"><CheckCircle className="w-3 h-3"/> <span className="hidden md:inline">出席</span></button>
+             <button onClick={handleBatchDelete} className="flex-shrink-0 flex items-center gap-1 px-2 py-1 bg-red-100 text-red-700 rounded hover:bg-red-200 text-xs font-medium"><Trash className="w-3 h-3"/> <span className="hidden md:inline">删除</span></button>
           </div>
         )}
       </div>
@@ -324,11 +338,11 @@ export const AttendeeTable: React.FC<AttendeeTableProps> = ({
       {/* Content Container */}
       <div className="flex-1 overflow-auto custom-scrollbar relative bg-slate-100 md:bg-white">
         
-        {/* DESKTOP TABLE VIEW */}
-        <table className="hidden md:table w-full text-left text-sm border-collapse">
+        {/* DESKTOP TABLE VIEW - Tight Layout */}
+        <table className="hidden md:table w-full text-left text-xs border-collapse">
           <thead className="bg-slate-50 sticky top-0 z-20 shadow-sm">
             <tr>
-              <th className="p-4 w-10 border-b border-slate-200">
+              <th className="p-2 w-8 border-b border-slate-200 text-center">
                 <input 
                   type="checkbox" 
                   className="rounded border-slate-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
@@ -336,81 +350,91 @@ export const AttendeeTable: React.FC<AttendeeTableProps> = ({
                   onChange={toggleSelectAll}
                 />
               </th>
-              <th className="p-3 border-b border-slate-200 font-semibold text-slate-600 cursor-pointer hover:bg-slate-100 transition-colors w-[15%]" onClick={() => handleSort('department')}>
+              <th className="p-2 border-b border-slate-200 font-semibold text-slate-600 cursor-pointer hover:bg-slate-100 transition-colors w-[12%]" onClick={() => handleSort('department')}>
                 <div className="flex items-center gap-1">部门 <ArrowUpDown className="w-3 h-3 text-slate-400" /></div>
               </th>
-               <th className="p-3 border-b border-slate-200 font-semibold text-slate-600 cursor-pointer hover:bg-slate-100 transition-colors w-[12%]" onClick={() => handleSort('jobTitle')}>
+               <th className="p-2 border-b border-slate-200 font-semibold text-slate-600 cursor-pointer hover:bg-slate-100 transition-colors w-[10%]" onClick={() => handleSort('jobTitle')}>
                 <div className="flex items-center gap-1">职务 <ArrowUpDown className="w-3 h-3 text-slate-400" /></div>
               </th>
-              <th className="p-3 border-b border-slate-200 font-semibold text-slate-600 cursor-pointer hover:bg-slate-100 transition-colors w-[12%]" onClick={() => handleSort('name')}>
+              <th className="p-2 border-b border-slate-200 font-semibold text-slate-600 cursor-pointer hover:bg-slate-100 transition-colors w-[10%]" onClick={() => handleSort('name')}>
                 <div className="flex items-center gap-1">姓名 <ArrowUpDown className="w-3 h-3 text-slate-400" /></div>
               </th>
-              <th className="p-3 border-b border-slate-200 font-semibold text-slate-600 w-[12%]">联系人</th>
-              <th className="p-3 border-b border-slate-200 font-semibold text-slate-600 w-[15%]">联系电话</th>
-              <th className="p-3 border-b border-slate-200 font-semibold text-slate-600 text-center w-[18%]">状态</th>
-              <th className="p-3 border-b border-slate-200 font-semibold text-slate-600 w-[10%] text-right">操作</th>
+              <th className="p-2 border-b border-slate-200 font-semibold text-slate-600 w-[10%]">联系人</th>
+              <th className="p-2 border-b border-slate-200 font-semibold text-slate-600 w-[12%]">联系电话</th>
+              <th className="p-2 border-b border-slate-200 font-semibold text-slate-600 w-[15%]">备注</th>
+              <th className="p-2 border-b border-slate-200 font-semibold text-slate-600 text-center w-[16%]">状态</th>
+              <th className="p-2 border-b border-slate-200 font-semibold text-slate-600 w-[8%] text-right">操作</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-100">
             {/* Quick Add Row - Always at top of body */}
             <tr className="bg-blue-50/60 border-b-2 border-blue-100 group">
-                <td className="p-4 text-center">
+                <td className="p-2 text-center">
                     <div className="w-4 h-4 rounded-full bg-blue-200 text-blue-600 flex items-center justify-center mx-auto">
                         <Plus className="w-3 h-3" />
                     </div>
                 </td>
-                <td className="p-3">
+                <td className="p-2">
                     <input 
                         ref={deptInputRef}
                         list="dept-options"
                         placeholder="部门..."
-                        className="w-full bg-white border border-blue-200 rounded px-2 py-1.5 focus:ring-2 focus:ring-blue-400 focus:border-blue-400 outline-none transition-all shadow-sm placeholder:text-slate-400"
+                        className="w-full bg-white border border-blue-200 rounded px-2 py-1 focus:ring-2 focus:ring-blue-400 focus:border-blue-400 outline-none transition-all shadow-sm placeholder:text-slate-400"
                         value={newItem.department}
                         onChange={e => autofillFromDepartment(e.target.value, true)}
                         onKeyDown={handleQuickAddKeyDown}
                     />
                 </td>
-                <td className="p-3">
+                <td className="p-2">
                     <input 
                         list="title-options"
                         placeholder="职务..."
-                        className="w-full bg-white border border-blue-200 rounded px-2 py-1.5 focus:ring-2 focus:ring-blue-400 focus:border-blue-400 outline-none transition-all shadow-sm placeholder:text-slate-400"
+                        className="w-full bg-white border border-blue-200 rounded px-2 py-1 focus:ring-2 focus:ring-blue-400 focus:border-blue-400 outline-none transition-all shadow-sm placeholder:text-slate-400"
                         value={newItem.jobTitle}
                         onChange={e => setNewItem({...newItem, jobTitle: e.target.value})}
                         onKeyDown={handleQuickAddKeyDown}
                     />
                 </td>
-                <td className="p-3">
+                <td className="p-2">
                      <input 
                         placeholder="姓名..."
-                        className="w-full bg-white border border-blue-200 rounded px-2 py-1.5 focus:ring-2 focus:ring-blue-400 focus:border-blue-400 outline-none transition-all shadow-sm placeholder:text-slate-400 font-medium"
+                        className="w-full bg-white border border-blue-200 rounded px-2 py-1 focus:ring-2 focus:ring-blue-400 focus:border-blue-400 outline-none transition-all shadow-sm placeholder:text-slate-400 font-medium"
                         value={newItem.name}
                         onChange={e => setNewItem({...newItem, name: e.target.value})}
                         onKeyDown={handleQuickAddKeyDown}
                     />
                 </td>
-                <td className="p-3">
+                <td className="p-2">
                     <input 
                         placeholder="联系人..."
-                        className="w-full bg-white border border-blue-200 rounded px-2 py-1.5 focus:ring-2 focus:ring-blue-400 focus:border-blue-400 outline-none transition-all shadow-sm placeholder:text-slate-400"
+                        className="w-full bg-white border border-blue-200 rounded px-2 py-1 focus:ring-2 focus:ring-blue-400 focus:border-blue-400 outline-none transition-all shadow-sm placeholder:text-slate-400"
                         value={newItem.contactName}
                         onChange={e => setNewItem({...newItem, contactName: e.target.value})}
                         onKeyDown={handleQuickAddKeyDown}
                     />
                 </td>
-                <td className="p-3">
+                <td className="p-2">
                     <input 
                         placeholder="电话..."
-                        className="w-full bg-white border border-blue-200 rounded px-2 py-1.5 focus:ring-2 focus:ring-blue-400 focus:border-blue-400 outline-none transition-all shadow-sm placeholder:text-slate-400"
+                        className="w-full bg-white border border-blue-200 rounded px-2 py-1 focus:ring-2 focus:ring-blue-400 focus:border-blue-400 outline-none transition-all shadow-sm placeholder:text-slate-400"
                         value={newItem.phone}
                         onChange={e => setNewItem({...newItem, phone: e.target.value})}
                         onKeyDown={handleQuickAddKeyDown}
                     />
                 </td>
-                <td className="p-3 text-center text-xs text-blue-500 italic">
+                <td className="p-2">
+                    <input 
+                        placeholder="备注..."
+                        className="w-full bg-white border border-blue-200 rounded px-2 py-1 focus:ring-2 focus:ring-blue-400 focus:border-blue-400 outline-none transition-all shadow-sm placeholder:text-slate-400"
+                        value={newItem.remarks}
+                        onChange={e => setNewItem({...newItem, remarks: e.target.value})}
+                        onKeyDown={handleQuickAddKeyDown}
+                    />
+                </td>
+                <td className="p-2 text-center text-xs text-blue-500 italic">
                     待添加 (按回车)
                 </td>
-                <td className="p-3 flex justify-end">
+                <td className="p-2 flex justify-end">
                     <span className="p-2 text-blue-300">
                         <CornerDownLeft className="w-4 h-4" />
                     </span>
@@ -419,7 +443,7 @@ export const AttendeeTable: React.FC<AttendeeTableProps> = ({
 
             {sortedAttendees.map(a => (
               <tr key={a.id} className={`hover:bg-slate-50 transition-colors group ${selectedIds.has(a.id) ? 'bg-blue-50' : ''}`}>
-                 <td className="p-4 w-10">
+                 <td className="p-2 text-center">
                     <input 
                       type="checkbox" 
                       className="rounded border-slate-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
@@ -428,7 +452,7 @@ export const AttendeeTable: React.FC<AttendeeTableProps> = ({
                     />
                   </td>
                   
-                  <td className="p-3">
+                  <td className="p-2">
                     <input 
                       list="dept-options"
                       type="text" 
@@ -438,7 +462,7 @@ export const AttendeeTable: React.FC<AttendeeTableProps> = ({
                     />
                   </td>
 
-                   <td className="p-3">
+                   <td className="p-2">
                     <input 
                       list="title-options"
                       type="text" 
@@ -448,7 +472,7 @@ export const AttendeeTable: React.FC<AttendeeTableProps> = ({
                     />
                   </td>
 
-                  <td className="p-3">
+                  <td className="p-2">
                     <input 
                       type="text" 
                       className="w-full font-medium text-slate-700 bg-transparent border border-transparent hover:border-slate-300 focus:bg-white focus:border-blue-400 rounded px-2 py-1 focus:ring-2 focus:ring-blue-100 outline-none transition-all"
@@ -457,7 +481,7 @@ export const AttendeeTable: React.FC<AttendeeTableProps> = ({
                     />
                   </td>
 
-                  <td className="p-3">
+                  <td className="p-2">
                     <input 
                       type="text" 
                       className="w-full text-slate-600 bg-transparent border border-transparent hover:border-slate-300 focus:bg-white focus:border-blue-400 rounded px-2 py-1 focus:ring-2 focus:ring-blue-100 outline-none transition-all"
@@ -466,7 +490,7 @@ export const AttendeeTable: React.FC<AttendeeTableProps> = ({
                     />
                   </td>
 
-                   <td className="p-3">
+                   <td className="p-2">
                     <input 
                       type="text" 
                       className="w-full text-slate-500 bg-transparent border border-transparent hover:border-slate-300 focus:bg-white focus:border-blue-400 rounded px-2 py-1 focus:ring-2 focus:ring-blue-100 outline-none transition-all"
@@ -475,27 +499,37 @@ export const AttendeeTable: React.FC<AttendeeTableProps> = ({
                     />
                   </td>
 
+                  <td className="p-2">
+                    <input 
+                      type="text" 
+                      className="w-full text-slate-500 bg-transparent border border-transparent hover:border-slate-300 focus:bg-white focus:border-blue-400 rounded px-2 py-1 focus:ring-2 focus:ring-blue-100 outline-none transition-all"
+                      value={a.remarks || ''}
+                      onChange={(e) => onUpdateAttendee(a.id, { remarks: e.target.value })}
+                      title={a.remarks}
+                    />
+                  </td>
+
                   {/* Combined Status/Flags */}
-                  <td className="p-3">
-                     <div className="flex flex-col gap-1.5">
-                         <div className="flex items-center justify-center gap-2">
+                  <td className="p-2">
+                     <div className="flex flex-col gap-1">
+                         <div className="flex items-center justify-center gap-1">
                             <button 
                                 onClick={() => onUpdateAttendee(a.id, { isNotified: !a.isNotified })}
                                 className={`p-1 rounded ${a.isNotified ? 'bg-blue-100 text-blue-600' : 'text-slate-300 hover:text-blue-400'}`}
                                 title="是否已通知"
                             >
-                                <Mail className="w-3.5 h-3.5" />
+                                <Mail className="w-3 h-3" />
                             </button>
                             <button 
                                 onClick={() => onUpdateAttendee(a.id, { hasRsvp: !a.hasRsvp })}
                                 className={`p-1 rounded ${a.hasRsvp ? 'bg-indigo-100 text-indigo-600' : 'text-slate-300 hover:text-indigo-400'}`}
                                 title="是否已回执"
                             >
-                                <FileCheck className="w-3.5 h-3.5" />
+                                <FileCheck className="w-3 h-3" />
                             </button>
                          </div>
                          <select 
-                            className={`w-full text-[10px] font-semibold py-0.5 px-1 rounded border focus:outline-none focus:ring-1 ${
+                            className={`w-full text-[10px] font-semibold py-0.5 px-0.5 rounded border focus:outline-none focus:ring-1 ${
                             a.status === 'present' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' :
                             a.status === 'leave' ? 'bg-amber-50 text-amber-700 border-amber-200' :
                             'bg-slate-50 text-slate-600 border-slate-200'
@@ -520,7 +554,7 @@ export const AttendeeTable: React.FC<AttendeeTableProps> = ({
                   </td>
                   
                   {/* Row Actions */}
-                  <td className="p-3">
+                  <td className="p-2">
                      <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity justify-end">
                         <button 
                             onClick={() => onDuplicateAttendee(a.id)}
@@ -583,19 +617,27 @@ export const AttendeeTable: React.FC<AttendeeTableProps> = ({
                     </div>
 
                     {/* Contact Info Row */}
-                    {(a.contactName || a.phone) && (
-                        <div className="flex items-center gap-4 text-sm bg-slate-50 p-2 rounded text-slate-600">
-                             {a.contactName && (
-                                <div className="flex items-center gap-1.5">
-                                    <User className="w-3.5 h-3.5 text-slate-400" />
-                                    <span>{a.contactName}</span>
+                    {(a.contactName || a.phone || a.remarks) && (
+                        <div className="flex flex-col gap-1 text-sm bg-slate-50 p-2 rounded text-slate-600">
+                             <div className="flex items-center gap-4">
+                                {a.contactName && (
+                                    <div className="flex items-center gap-1.5">
+                                        <User className="w-3.5 h-3.5 text-slate-400" />
+                                        <span>{a.contactName}</span>
+                                    </div>
+                                )}
+                                {a.phone && (
+                                    <div className="flex items-center gap-1.5">
+                                        <Phone className="w-3.5 h-3.5 text-slate-400" />
+                                        <a href={`tel:${a.phone}`} className="underline decoration-slate-300">{a.phone}</a>
+                                    </div>
+                                )}
+                             </div>
+                             {a.remarks && (
+                                <div className="flex items-center gap-1.5 text-xs text-slate-500 mt-1 border-t border-slate-200 pt-1">
+                                    <MessageSquare className="w-3 h-3 text-slate-400" />
+                                    <span>{a.remarks}</span>
                                 </div>
-                             )}
-                             {a.phone && (
-                                 <div className="flex items-center gap-1.5">
-                                    <Phone className="w-3.5 h-3.5 text-slate-400" />
-                                    <a href={`tel:${a.phone}`} className="underline decoration-slate-300">{a.phone}</a>
-                                 </div>
                              )}
                         </div>
                     )}
@@ -692,4 +734,4 @@ export const AttendeeTable: React.FC<AttendeeTableProps> = ({
       </div>
     </div>
   );
-};
+}

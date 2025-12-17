@@ -6,6 +6,7 @@ export const EMPTY_ATTENDEE = {
   name: "",
   contactName: "",
   phone: "",
+  remarks: "",
   isNotified: false,
   hasRsvp: false,
   status: 'pending' as const,

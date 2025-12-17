@@ -5,6 +5,7 @@ export interface Attendee {
   name: string; // The attendee's name
   contactName: string; // The department contact person
   phone: string; // The department contact phone
+  remarks?: string; // Department remarks (synced across same department)
   isNotified: boolean;
   hasRsvp: boolean;
   status: 'present' | 'leave' | 'pending';
@@ -37,5 +38,5 @@ export enum FilterStatus {
   RSVP_NO = 'RSVP_NO'
 }
 
-export type SortField = 'department' | 'name' | 'jobTitle' | 'status' | 'contactName';
+export type SortField = 'department' | 'name' | 'jobTitle' | 'status' | 'contactName' | 'remarks';
 export type SortDirection = 'asc' | 'desc';
